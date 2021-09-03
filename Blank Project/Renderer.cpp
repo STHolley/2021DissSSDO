@@ -16,28 +16,18 @@ Renderer::Renderer(Window& w) : OGLRenderer(w) {
 	//cube = Mesh::LoadFromMeshFile("Cube.msh");
 	quad = Mesh::GenerateQuad();
 	heightMap = new HeightMap("C:/Users/SamHo/Documents/GitHub/VXGI/Textures/noise.png");
+	actor = Mesh::LoadFromMeshFile("Role_T.msh");
 
 	//Load Textures
 	glGetString(GL_EXTENSIONS);
 	earthTex = SOIL_load_OGL_texture("C:/Users/SamHo/Documents/GitHub/VXGI/Textures/Barren Reds.jpg", SOIL_LOAD_AUTO, SOIL_CREATE_NEW_ID, SOIL_FLAG_MIPMAPS);
 	earthBump = SOIL_load_OGL_texture(TEXTUREDIR"cw/AsphaltBump.jpg", SOIL_LOAD_AUTO, SOIL_CREATE_NEW_ID, SOIL_FLAG_MIPMAPS);
 
-	if (!earthTex) {
-		return;
-	}
-
 	overgrowthTex = SOIL_load_OGL_texture("C:/Users/SamHo/Documents/GitHub/VXGI/Textures/cw/GrassDiffuse.jpg", SOIL_LOAD_AUTO, SOIL_CREATE_NEW_ID, SOIL_FLAG_MIPMAPS);
 	overgrowthBump = SOIL_load_OGL_texture(TEXTUREDIR"cw/GrassBump.jpg", SOIL_LOAD_AUTO, SOIL_CREATE_NEW_ID, SOIL_FLAG_MIPMAPS);
-	//overgrowthMap = SOIL_load_OGL_texture(TEXTUREDIR"cw/GrassNoise.png", SOIL_LOAD_AUTO, SOIL_CREATE_NEW_ID, SOIL_FLAG_MIPMAPS);
-
-	//waterTex = SOIL_load_OGL_texture(TEXTUREDIR"cw/WaterDiffuse.jpg", SOIL_LOAD_AUTO, SOIL_CREATE_NEW_ID, SOIL_FLAG_MIPMAPS);
-	//waterBump = SOIL_load_OGL_texture(TEXTUREDIR"cw/WaterBump.jpg", SOIL_LOAD_AUTO, SOIL_CREATE_NEW_ID, SOIL_FLAG_MIPMAPS);
 	
-	//buildingTex = SOIL_load_OGL_texture(TEXTUREDIR"cw/BuildingDiffuse.png", SOIL_LOAD_AUTO, SOIL_CREATE_NEW_ID, SOIL_FLAG_MIPMAPS);
-	//buildingBump = SOIL_load_OGL_texture(TEXTUREDIR"cw/BuildingBump.png", SOIL_LOAD_AUTO, SOIL_CREATE_NEW_ID, SOIL_FLAG_MIPMAPS);
-	//buildingWindows = SOIL_load_OGL_texture(TEXTUREDIR"cw/BuildingWindow.png", SOIL_LOAD_AUTO, SOIL_CREATE_NEW_ID, SOIL_FLAG_MIPMAPS);
-
-	//noise = SOIL_load_OGL_texture(TEXTUREDIR"noise2.png", SOIL_LOAD_AUTO, SOIL_CREATE_NEW_ID, SOIL_FLAG_MIPMAPS);
+	redTex = SOIL_load_OGL_texture("C:/Users/SamHo/Documents/GitHub/VXGI/Textures/red.png", SOIL_LOAD_AUTO, SOIL_CREATE_NEW_ID, SOIL_FLAG_MIPMAPS);
+	greenTex = SOIL_load_OGL_texture("C:/Users/SamHo/Documents/GitHub/VXGI/Textures/green.png", SOIL_LOAD_AUTO, SOIL_CREATE_NEW_ID, SOIL_FLAG_MIPMAPS);
 
 	cubeMap = SOIL_load_OGL_cubemap("C:/Users/SamHo/Documents/GitHub/VXGI/Textures/cw/skybox/miramar_rt.tga", 
 		"C:/Users/SamHo/Documents/GitHub/VXGI/Textures/cw/skybox/miramar_lf.tga",
@@ -52,11 +42,13 @@ Renderer::Renderer(Window& w) : OGLRenderer(w) {
 	SetTextureRepeating(earthBump, true);
 	SetTextureRepeating(overgrowthTex, true);
 	SetTextureRepeating(overgrowthBump, true);
+	SetTextureRepeating(redTex, true);
+	SetTextureRepeating(greenTex, true);
 	
 
 	Vector3 heightMapSize = heightMap->GetHeightMapSize();
 
-	camera = new Camera(0, 0, Vector3(heightMapSize.x / 2, 400, heightMapSize.z / 2));
+	camera = new Camera(0, 0, Vector3(5, 40, 5));
 
 	//Load Shaders
 	geomShader = new Shader("cw/ssdoGeomVert.glsl", "cw/ssdoGeomFrag.glsl");
@@ -335,23 +327,37 @@ void Renderer::GeomPass() {
 	glBindTexture(GL_TEXTURE_2D, earthTex);
 	glActiveTexture(GL_TEXTURE1);
 	glBindTexture(GL_TEXTURE_2D, earthBump);
-	modelMatrix = Matrix4::Translation(Vector3(2000, 250, 2000)) * Matrix4::Rotation(90, Vector3(1,0,0)) * Matrix4::Scale(Vector3(1000, 1000, 1000));
+	modelMatrix = Matrix4::Translation(Vector3(0, 25, 0)) * Matrix4::Rotation(90, Vector3(1,0,0)) * Matrix4::Scale(Vector3(100, 100, 100));
 	UpdateShaderMatrices();
 	quad->Draw();
-	modelMatrix = Matrix4::Translation(Vector3(2000, 300, 2000)) * Matrix4::Scale(Vector3(100, 100, 100));
+	glActiveTexture(GL_TEXTURE0);
+	glBindTexture(GL_TEXTURE_2D, redTex);
+	glActiveTexture(GL_TEXTURE1);
+	glBindTexture(GL_TEXTURE_2D, NULL);
+	modelMatrix = Matrix4::Translation(Vector3(0, 125, 100)) * Matrix4::Rotation(0, Vector3(1, 0, 0)) * Matrix4::Scale(Vector3(100, 100, 100));
+	UpdateShaderMatrices();
+	quad->Draw();
+	glActiveTexture(GL_TEXTURE0);
+	glBindTexture(GL_TEXTURE_2D, greenTex);
+	glActiveTexture(GL_TEXTURE1);
+	glBindTexture(GL_TEXTURE_2D, NULL);
+	modelMatrix = Matrix4::Translation(Vector3(100, 125, 0)) * Matrix4::Rotation(90, Vector3(0, 1, 0)) * Matrix4::Scale(Vector3(100, 100, 100));
+	UpdateShaderMatrices();
+	quad->Draw();
+	modelMatrix = Matrix4::Translation(Vector3(0, 30, 0)) * Matrix4::Scale(Vector3(10, 10, 10));
 	glActiveTexture(GL_TEXTURE0);
 	glBindTexture(GL_TEXTURE_2D, overgrowthTex);
 	glActiveTexture(GL_TEXTURE1);
 	glBindTexture(GL_TEXTURE_2D, overgrowthBump);
 	UpdateShaderMatrices();
-	sphere->Draw();
-	modelMatrix = Matrix4::Translation(Vector3(0, 0, 0)) * Matrix4::Scale(Vector3(1, 1, 1));
+	//sphere->Draw();
+	modelMatrix = Matrix4::Translation(Vector3(75, 25, 75)) * Matrix4::Rotation(225, Vector3(0, 1, 0)) * Matrix4::Scale(Vector3(20, 20, 20));
 	glActiveTexture(GL_TEXTURE0);
-	glBindTexture(GL_TEXTURE_2D, earthTex);
+	glBindTexture(GL_TEXTURE_2D, overgrowthTex);
 	glActiveTexture(GL_TEXTURE1);
-	glBindTexture(GL_TEXTURE_2D, earthBump);
+	glBindTexture(GL_TEXTURE_2D, overgrowthBump);
 	UpdateShaderMatrices();
-	heightMap->Draw();
+	actor->Draw();
 	modelMatrix.ToIdentity();
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 }

@@ -56,13 +56,14 @@ protected:
 
 	std::vector<Vector3> ssdoKernel;
 
-	Vector3 lightCol = Vector3(0.2, 0.2, 0.2);
-	Vector3 lightPos = Vector3(0, 2, 0);
+	Vector3 lightCol = Vector3(1, 1, 1);
+	Vector3 lightPos = Vector3(0, 1, 0);
 
 	HeightMap* heightMap;
 
 	Mesh* sphere;
 	Mesh* quad;
+	Mesh* actor;
 
 	Camera* camera;
 	Vector3 pointTo;
@@ -71,6 +72,8 @@ protected:
 
 	GLuint earthTex;
 	GLuint earthBump;
+	GLuint redTex;
+	GLuint greenTex;
 	GLuint overgrowthTex;
 	GLuint overgrowthBump;
 	
