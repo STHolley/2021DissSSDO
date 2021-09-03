@@ -4,15 +4,13 @@ in Vertex{
     vec2 texCoord;
 } IN;
 
-uniform sampler2D sceneDepthTex;
-uniform sampler2D sceneNormalTex;
-uniform sampler2D ssdo;
-uniform sampler2D ssdoBlur;
-uniform sampler2D texLighting;
-uniform sampler2D texIndirectLight;
-uniform sampler2D texIndirectLightBlur;
-
-uniform mat4 viewMatrix;
+uniform sampler2D sceneDepthTex; //PositionColourBuffer
+uniform sampler2D sceneNormalTex; //NormalColourBuffer
+uniform sampler2D ssdo; //SSDO pass Output
+uniform sampler2D ssdoBlur; // SSDO blur pass output
+uniform sampler2D texLighting; //SSDO lighting output
+uniform sampler2D texIndirectLight; //SSDO indirect lighting output
+uniform sampler2D texIndirectLightBlur; //SSDO indirect blur lighting output
 
 uniform int draw_mode;
 

@@ -15,27 +15,18 @@ Renderer::Renderer(Window& w) : OGLRenderer(w) {
 	//cone = Mesh::LoadFromMeshFile("Cone.msh");
 	//cube = Mesh::LoadFromMeshFile("Cube.msh");
 	quad = Mesh::GenerateQuad();
-	heightMap = new HeightMap(TEXTUREDIR"noise.png");
-
-	kernels = new float[192];
-
-	srand(time(NULL));
-	for (int i = 0; i < 64; ++i)
-	{
-		Vector3 sample(((float)rand() / (float)(RAND_MAX / 2)) - 1.0, ((float)rand() / (float)(RAND_MAX / 2)) - 1.0, ((float)rand() / (float)(RAND_MAX / 2)) - 1.0);
-		sample = sample.Normalised();
-		ssdoKernel.push_back(sample);
-		kernels[i * 3 + 0] = ssdoKernel[i].x;
-		kernels[i * 3 + 1] = ssdoKernel[i].y;
-		kernels[i * 3 + 2] = ssdoKernel[i].z;
-	}
+	heightMap = new HeightMap("C:/Users/SamHo/Documents/GitHub/VXGI/Textures/white-noise.jpg");
 
 	//Load Textures
 	glGetString(GL_EXTENSIONS);
-	earthTex = SOIL_load_OGL_texture(TEXTUREDIR"Barren Reds.jpg", SOIL_LOAD_AUTO, SOIL_CREATE_NEW_ID, SOIL_FLAG_MIPMAPS);
+	earthTex = SOIL_load_OGL_texture("C:/Users/SamHo/Documents/GitHub/VXGI/Textures/Barren Reds.jpg", SOIL_LOAD_AUTO, SOIL_CREATE_NEW_ID, SOIL_FLAG_MIPMAPS);
 	//earthBump = SOIL_load_OGL_texture(TEXTUREDIR"cw/AsphaltBump.jpg", SOIL_LOAD_AUTO, SOIL_CREATE_NEW_ID, SOIL_FLAG_MIPMAPS);
 
-	overgrowthTex = SOIL_load_OGL_texture(TEXTUREDIR"cw/GrassDiffuse.jpg", SOIL_LOAD_AUTO, SOIL_CREATE_NEW_ID, SOIL_FLAG_MIPMAPS);
+	if (!earthTex) {
+		return;
+	}
+
+	overgrowthTex = SOIL_load_OGL_texture("C:/Users/SamHo/Documents/GitHub/VXGI/Textures/cw/GrassDiffuse.jpg", SOIL_LOAD_AUTO, SOIL_CREATE_NEW_ID, SOIL_FLAG_MIPMAPS);
 	//overgrowthBump = SOIL_load_OGL_texture(TEXTUREDIR"cw/GrassBump.jpg", SOIL_LOAD_AUTO, SOIL_CREATE_NEW_ID, SOIL_FLAG_MIPMAPS);
 	//overgrowthMap = SOIL_load_OGL_texture(TEXTUREDIR"cw/GrassNoise.png", SOIL_LOAD_AUTO, SOIL_CREATE_NEW_ID, SOIL_FLAG_MIPMAPS);
 
@@ -46,14 +37,14 @@ Renderer::Renderer(Window& w) : OGLRenderer(w) {
 	//buildingBump = SOIL_load_OGL_texture(TEXTUREDIR"cw/BuildingBump.png", SOIL_LOAD_AUTO, SOIL_CREATE_NEW_ID, SOIL_FLAG_MIPMAPS);
 	//buildingWindows = SOIL_load_OGL_texture(TEXTUREDIR"cw/BuildingWindow.png", SOIL_LOAD_AUTO, SOIL_CREATE_NEW_ID, SOIL_FLAG_MIPMAPS);
 
-	noise = SOIL_load_OGL_texture(TEXTUREDIR"noise2.png", SOIL_LOAD_AUTO, SOIL_CREATE_NEW_ID, SOIL_FLAG_MIPMAPS);
+	//noise = SOIL_load_OGL_texture(TEXTUREDIR"noise2.png", SOIL_LOAD_AUTO, SOIL_CREATE_NEW_ID, SOIL_FLAG_MIPMAPS);
 
-	cubeMap = SOIL_load_OGL_cubemap(TEXTUREDIR"cw/skybox/miramar_rt.tga", 
-		TEXTUREDIR"cw/skybox/miramar_lf.tga", 
-		TEXTUREDIR"cw/skybox/miramar_up.tga", 
-		TEXTUREDIR"cw/skybox/miramar_dn.tga", 
-		TEXTUREDIR"cw/skybox/miramar_bk.tga", 
-		TEXTUREDIR"cw/skybox/miramar_ft.tga", 
+	cubeMap = SOIL_load_OGL_cubemap("C:/Users/SamHo/Documents/GitHub/VXGI/Textures/cw/skybox/miramar_rt.tga", 
+		"C:/Users/SamHo/Documents/GitHub/VXGI/Textures/cw/skybox/miramar_lf.tga",
+		"C:/Users/SamHo/Documents/GitHub/VXGI/Textures/cw/skybox/miramar_up.tga",
+		"C:/Users/SamHo/Documents/GitHub/VXGI/Textures/cw/skybox/miramar_dn.tga",
+		"C:/Users/SamHo/Documents/GitHub/VXGI/Textures/cw/skybox/miramar_bk.tga",
+		"C:/Users/SamHo/Documents/GitHub/VXGI/Textures/cw/skybox/miramar_ft.tga",
 		SOIL_LOAD_RGB, SOIL_CREATE_NEW_ID, 0);
 
 
@@ -64,11 +55,11 @@ Renderer::Renderer(Window& w) : OGLRenderer(w) {
 	//SetTextureRepeating(waterTex, true);
 	//SetTextureRepeating(waterBump, true);
 	//SetTextureRepeating(buildingWindows, true);
-	SetTextureRepeating(noise, true);
+	
 
-	//Vector3 heightMapSize = heightMap->GetHeightMapSize();
+	Vector3 heightMapSize = heightMap->GetHeightMapSize();
 
-	camera = new Camera(0, 0, Vector3(0, 400, 0));
+	camera = new Camera(0, 0, Vector3(heightMapSize.x / 2, 400, heightMapSize.z / 2));
 
 	//Load Shaders
 	geomShader = new Shader("cw/ssdoGeomVert.glsl", "cw/ssdoGeomFrag.glsl");
@@ -79,6 +70,42 @@ Renderer::Renderer(Window& w) : OGLRenderer(w) {
 	iBlurShader = new Shader("cw/ssdoVert.glsl", "cw/ssdoBlur.glsl");
 	accLightShader = new Shader("cw/ssdoVert.glsl", "cw/ssdoAccLight.glsl");
 	skyboxShader = new Shader("cw/SkyboxVertex.glsl", "cw/SkyboxFragment.glsl");
+
+	std::uniform_real_distribution<float> randomFloats(0.0, 1.0); // random floats between [0.0, 1.0]
+	std::default_random_engine generator;
+	std::cout << "samples:\n";
+	for (int i = 0; i < 64; ++i)
+	{
+		Vector3 sample(
+			randomFloats(generator) * 2.0 - 1.0,
+			randomFloats(generator) * 2.0 - 1.0,
+			randomFloats(generator)
+		);
+		sample = sample.Normalised();
+		sample = sample * randomFloats(generator);
+		float scale = (float)i / 64.0;
+		scale = lerp(0.1f, 1.0f, scale * scale);
+		sample = sample * scale;
+		ssdoKernel.push_back(sample);
+		std::cout << sample;
+	}
+
+	std::cout << "\n";
+	vector<Vector3> ssaoNoise;
+	for (unsigned int i = 0; i < 16; i++)
+	{
+		std::cout << "\nNext Tex Pixel\nx:";
+		Vector3 temp(randomFloats(generator) * 2.0 - 1.0, randomFloats(generator) * 2.0 - 1.0, 0.0f);
+		ssaoNoise.push_back(temp);
+	}
+	
+	glGenTextures(1, &noiseTexture);
+	glBindTexture(GL_TEXTURE_2D, noiseTexture);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA16F, 4, 4, 0, GL_RGB, GL_FLOAT, &ssaoNoise[0].x);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
 
 	BindShader(geomShader);
 	glUniform1i(glGetUniformLocation(geomShader->GetProgram(), "albedo"), 0);
@@ -235,42 +262,38 @@ Renderer::Renderer(Window& w) : OGLRenderer(w) {
 	projMatrix = Matrix4::Perspective(1, 10000, (float)width / (float)height, 55);
 
 	glEnable(GL_DEPTH_TEST);
-	glDisable(GL_CULL_FACE);
-	glEnable(GL_BLEND);
+	glDepthFunc(GL_LESS);
+	//glDisable(GL_CULL_FACE);
+	//glEnable(GL_BLEND);
 	//glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 	glEnable(GL_TEXTURE_CUBE_MAP_SEAMLESS);
 
-	currentFrame = 0;
-	frameTime = 0.0f;
 	init = true;
-
-	for (int i = 0; i < 192; i += 3) {
-		std::cout << abs(kernels[i]) << " " << abs(kernels[i + 1]) << " " << abs(kernels[i + 2]) << "\n";
-	}
 }
 
 Renderer::~Renderer(void) {
 	// Delete shaders and buffers
-	//delete geomShader;
+	delete geomShader;
+	delete ssdoShader;
+	delete blurShader;
+	delete lightingShader;
+	delete indirectShader;
+	delete iBlurShader;
+	delete accLightShader;
+	delete skyboxShader;
 
-	//glDeleteTextures(1, &positionColourBuffer);
-}
+	glDeleteTextures(1, &positionColourBuffer);
+	glDeleteTextures(1, &normalColourBuffer);
+	glDeleteTextures(1, &colourColourBuffer);
+	glDeleteTextures(1, &depthColourBuffer);
+	glDeleteTextures(1, &depthRenderBuffer);
+	glDeleteTextures(1, &ssdoColorBuffer);
+	glDeleteTextures(1, &ssdoColorBufferBlur);
+	glDeleteTextures(1, &ssdoColorBufferLighting);
+	glDeleteTextures(1, &ssdoColorBufferIndirect);
+	glDeleteTextures(1, &ssdoColorBufferIndirectBlur);
+	glDeleteTextures(1, &ssdoColorBufferAccLight);
 
-void Renderer::GenerateScreenTexture(GLuint& into, bool depth) {
-	glGenTextures(1, &into);
-	glBindTexture(GL_TEXTURE_2D, into);
-
-	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-
-	GLuint format = depth ? GL_DEPTH_COMPONENT24 : GL_RGBA8;
-	GLuint type = depth ? GL_DEPTH_COMPONENT : GL_RGBA;
-
-	glTexImage2D(GL_TEXTURE_2D, 0, format, width, height, 0, type, GL_UNSIGNED_BYTE, NULL);
-
-	glBindTexture(GL_TEXTURE_2D, 0);
 }
 
 void Renderer::UpdateScene(float dt) {
@@ -302,10 +325,11 @@ void Renderer::UpdateScene(float dt) {
 		drawMode = 11;
 	if (Window::GetKeyboard()->KeyTriggered(KEYBOARD_O))
 		drawMode = 12;
+	//std::cout << drawMode << " ";
 }
 
 void Renderer::RenderScene() {
-	glClearColor(0.1, 0.1, 0.1, 1.0f);
+	glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	GeomPass();
 	SSDOPass();
@@ -323,15 +347,20 @@ void Renderer::GeomPass() {
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	glActiveTexture(GL_TEXTURE0);
 	glBindTexture(GL_TEXTURE_2D, earthTex);
-	modelMatrix = Matrix4::Translation(Vector3(2000, 250, 2000)) * Matrix4::Rotation(90, Vector3(0,0,0)) * Matrix4::Scale(Vector3(1, 1, 1));
+	modelMatrix = Matrix4::Translation(Vector3(2000, 250, 2000)) * Matrix4::Rotation(90, Vector3(1,0,0)) * Matrix4::Scale(Vector3(1000, 1000, 1000));
 	UpdateShaderMatrices();
-	heightMap->Draw();
+	//quad->Draw();
 	modelMatrix = Matrix4::Translation(Vector3(2000, 300, 2000)) * Matrix4::Scale(Vector3(100, 100, 100));
 	glActiveTexture(GL_TEXTURE0);
 	glBindTexture(GL_TEXTURE_2D, overgrowthTex);
 	UpdateShaderMatrices();
 	sphere->Draw();
-	modelMatrix = Matrix4::Translation(Vector3(0, 0, 0));
+	modelMatrix = Matrix4::Translation(Vector3(0, 0, 0)) * Matrix4::Scale(Vector3(1, 1, 1));
+	glActiveTexture(GL_TEXTURE0);
+	glBindTexture(GL_TEXTURE_2D, earthTex);
+	UpdateShaderMatrices();
+	heightMap->Draw();
+	modelMatrix.ToIdentity();
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 }
 
@@ -344,10 +373,11 @@ void Renderer::SSDOPass() {
 	glActiveTexture(GL_TEXTURE1);
 	glBindTexture(GL_TEXTURE_2D, normalColourBuffer);
 	glActiveTexture(GL_TEXTURE2);
-	glBindTexture(GL_TEXTURE_2D, noise);
+	glBindTexture(GL_TEXTURE_2D, noiseTexture);
 	glActiveTexture(GL_TEXTURE3);
 	glBindTexture(GL_TEXTURE_CUBE_MAP, cubeMap);
-	glUniform1fv(glGetUniformLocation(ssdoShader->GetProgram(), "samples"), 192, kernels);
+	for (GLuint i = 0; i < 64; ++i)
+		glUniform3fv(glGetUniformLocation(ssdoShader->GetProgram(), ("samples[" + std::to_string(i) + "]").c_str()), 1, &ssdoKernel[i].x);
 	UpdateShaderMatrices();
 	quad->Draw();
 
@@ -379,10 +409,10 @@ void Renderer::SSDOLightPass() {
 	// Update attenuation parameters
 	const GLfloat linear = 0.09;
 	const GLfloat quadratic = 0.032;
-	Vector3 lightPos2 = camera->BuildMatrixView() * lightPos;
+	Vector3 lightPos2 = Matrix4::Rotation(camera->GetYaw(), Vector3(0,1,0)) * lightPos;
 	glUniform1f(glGetUniformLocation(lightingShader->GetProgram(), "light.Linear"), linear);
 	glUniform1f(glGetUniformLocation(lightingShader->GetProgram(), "light.Quadratic"), quadratic);
-	glUniform3fv(glGetUniformLocation(lightingShader->GetProgram(), "light.Position"), 1, &lightPos2.x);
+	glUniform3fv(glGetUniformLocation(lightingShader->GetProgram(), "light.Position"), 1, &lightPos.x);
 	glUniform3fv(glGetUniformLocation(lightingShader->GetProgram(), "light.Color"), 1, &lightCol.x);
 	glUniform1f(glGetUniformLocation(lightingShader->GetProgram(), "light.Radius"), 500.0f);
 	UpdateShaderMatrices();
@@ -399,10 +429,11 @@ void Renderer::SSDOIndirectPass() {
 	glActiveTexture(GL_TEXTURE1);
 	glBindTexture(GL_TEXTURE_2D, normalColourBuffer);
 	glActiveTexture(GL_TEXTURE2);
-	glBindTexture(GL_TEXTURE_2D, noise);
+	glBindTexture(GL_TEXTURE_2D, noiseTexture);
 	glActiveTexture(GL_TEXTURE3);
 	glBindTexture(GL_TEXTURE_2D, ssdoColorBufferLighting);
-	glUniform1fv(glGetUniformLocation(indirectShader->GetProgram(), "samples"), 192, kernels);
+	for (GLuint i = 0; i < 64; ++i)
+		glUniform3fv(glGetUniformLocation(indirectShader->GetProgram(), ("samples[" + std::to_string(i) + "]").c_str()), 1, &ssdoKernel[i].x);
 	UpdateShaderMatrices();
 	quad->Draw();
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);

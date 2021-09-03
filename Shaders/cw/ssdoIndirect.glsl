@@ -9,14 +9,14 @@ uniform sampler2D sceneNormalTex;
 uniform sampler2D noiseTex;
 uniform sampler2D lightingTex;
 
-uniform float samples[192];
+uniform vec3 samples[64];
 
 // parameters (you'd probably want to use them as uniforms to more easily tweak the effect)
 int kernelSize = 64;
-float radius = 1.0;
+float radius = 50.0;
 
 // tile noise texture over screen based on screen dimensions divided by noise size
-const vec2 noiseScale = vec2(257.0f/4.0f, 257.0f/4.0f); 
+const vec2 noiseScale = vec2(1500.0f/4.0f, 1000.0f/4.0f); 
 
 uniform mat4 projMatrix;
 
@@ -32,10 +32,10 @@ void main()
     mat3 TBN = mat3(tangent, bitangent, normal);
     // Iterate over the sample kernel and calculate indirect light
 	vec3 indirectLight = vec3(0.0, 0.0, 0.0);
-    for(int i = 0; i < kernelSize * 3; i+=3)
+    for(int i = 0; i < kernelSize; ++i)
     {
         // get sample position
-        vec3 samp = TBN * vec3(samples[i], samples[i+1], samples[i+2]); // From tangent to view-space
+        vec3 samp = TBN * samples[i]; // From tangent to view-space
         samp = fragPos + samp * radius; 
         
         // project sample position (to sample texture) (to get position on screen/texture)

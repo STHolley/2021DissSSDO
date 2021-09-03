@@ -11,7 +11,6 @@ uniform sampler2D sceneColourTex;
 struct Light {
     vec3 Position;
     vec3 Color;
-    
     float Linear;
     float Quadratic;
     float Radius;
@@ -25,9 +24,9 @@ void main()
     vec3 FragPos = texture(sceneDepthTex, IN.texCoord).rgb;
     vec3 Normal = texture(sceneNormalTex, IN.texCoord).rgb;
     vec3 Diffuse = texture(sceneColourTex, IN.texCoord).rgb;
-    
+
+    vec3 viewDir  = normalize(FragPos); // viewpos is (0.0.0) in view-space
     // Then calculate lighting as usual
-    vec3 viewDir  = normalize(FragPos); // Viewpos is (0.0.0)
     // Diffuse
     vec3 lightDir = normalize(light.Position - FragPos);
     vec3 diffuse = max(dot(Normal, lightDir), 0.0) * Diffuse * light.Color;
@@ -36,8 +35,8 @@ void main()
     float spec = pow(max(dot(Normal, halfwayDir), 0.0), 50.0);
     vec3 specular = light.Color * spec;
     // Attenuation
-    float distance = length(light.Position - FragPos);
-    float attenuation = 1.0 / (1.0 + light.Linear * distance + light.Quadratic * distance * distance);
+    float dist = length(light.Position - FragPos);
+    float attenuation = 1.0 / (1.0 + light.Linear * dist + light.Quadratic * dist * dist);
     diffuse *= attenuation;
     specular *= attenuation;
 

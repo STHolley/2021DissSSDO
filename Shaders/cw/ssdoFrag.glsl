@@ -10,14 +10,14 @@ uniform sampler2D sceneNormalTex;
 uniform sampler2D noiseTex;
 uniform samplerCube skybox;
 
-uniform float samples[192];
+uniform vec3 samples[64];
 
 // parameters (you'd probably want to use them as uniforms to more easily tweak the effect)
 int kernelSize = 64;
-float radius = 2.0;
+float radius = 50.0;
 
 // tile noise texture over screen based on screen dimensions divided by noise size
-const vec2 noiseScale = vec2(257.0f/4.0f, 257.0f/4.0f);  
+const vec2 noiseScale = vec2(1500.0f/4.0f, 1000.0f/4.0f); 
 
 uniform mat4 viewMatrix;
 uniform mat4 projMatrix;
@@ -35,11 +35,10 @@ void main()
     // Iterate over the sample kernel and calculate occlusion factor	
     vec3 directionalLight = vec3(0.0, 0.0, 0.0);
 	
-	
-    for(int i = 0; i < kernelSize * 3; i+=3)
+    for(int i = 0; i < kernelSize; ++i)
     {
         // get sample position
-        vec3 samp = TBN * vec3(samples[i], samples[i+1], samples[i+2]); // From tangent to view-space
+        vec3 samp = TBN * samples[i]; // From tangent to view-space
         samp = fragPos + samp * radius; 
         
         // project sample position (to sample texture) (to get position on screen/texture)
@@ -53,17 +52,17 @@ void main()
 		vec3 sampleNormal = texture(sceneNormalTex, offset.xy).rgb;
 		vec3 samplePos = texture(sceneDepthTex, offset.xy).xyz;
 		
-        vec4 skyboxDirection = inverse(viewMatrix) * vec4(samp - fragPos, 1.0);
+		vec4 skyboxDirection = inverse(viewMatrix) * vec4(samp - fragPos, 1.0);
 		skyboxDirection /= skyboxDirection.w;
 		vec3 skyboxColor = texture(skybox, skyboxDirection.xyz).xyz;
-
-		 // range check & accumulate
+        
+        // range check & accumulate
 		if (sampleDepth < samp.z) {
 			directionalLight += skyboxColor * dot(normal, normalize(samp - fragPos));
 		}
         
     }
-    directionalLight /= kernelSize;
+    directionalLight /= kernelSize * 2;
     
     fragColour = directionalLight;
 }

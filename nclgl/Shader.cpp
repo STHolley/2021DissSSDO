@@ -61,10 +61,10 @@ void	Shader::Reload(bool deleteOld) {
 }
 
 bool	Shader::LoadShaderFile(const string& filename, string &into)	{
-	ifstream	file("C:/Users/SamHo/Downloads/CSC8502/Shaders/" + filename);
+	ifstream	file("C:/Users/SamHo/Documents/GitHub/VXGI/Shaders/" + filename);
 	string		textLine;
 
-	cout << "Loading shader text from " << "C:/Users/SamHo/Downloads/CSC8502/Shaders/" << filename << "\n\n";
+	cout << "Loading shader text from " << "C:/Users/SamHo/Documents/GitHub/VXGI/Shaders/" << filename << "\n\n";
 
 	if(!file.is_open()){
 		cout << "ERROR ERROR ERROR ERROR: File does not exist!\n";
@@ -75,7 +75,7 @@ bool	Shader::LoadShaderFile(const string& filename, string &into)	{
 		getline(file,textLine);
 		textLine += "\n";
 		into += textLine;
-		cout << "(" << lineNum << ") :" << textLine;
+		//cout << "(" << lineNum << ") :" << textLine;
 		++lineNum;
 	}
 	cout << "\nLoaded shader text!\n\n";
