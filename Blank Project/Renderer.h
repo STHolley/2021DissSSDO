@@ -70,7 +70,9 @@ protected:
 	GLuint cubeMap;
 
 	GLuint earthTex;
+	GLuint earthBump;
 	GLuint overgrowthTex;
+	GLuint overgrowthBump;
 	
 	GLuint noiseTexture;
 

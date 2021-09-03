@@ -5,11 +5,15 @@ layout (location = 2) out vec3 colourTex;
 layout (location = 3) out float depthTex;
 
 uniform sampler2D albedo;
+uniform sampler2D normal;
 
-in Vertex {
-    vec2 texCoord;
-    vec3 normal;
-    vec3 worldPos;
+in Vertex{
+	vec4 colour;
+	vec2 texCoord;
+	vec3 normal;
+	vec3 tangent;
+	vec3 binormal;
+	vec3 worldPos;
 } IN;
 
 const float NEAR = 0.1;
@@ -25,5 +29,14 @@ void main()
     sceneDepthTex = vec4(IN.worldPos, LinearizeDepth(gl_FragCoord.z));
 	depthTex = sceneDepthTex.a;
     sceneNormalTex = normalize(IN.normal);
+
+	mat3 TBN = mat3(normalize(IN.tangent), normalize(IN.binormal), normalize(IN.normal));
+
+	vec4 diffuse = texture(albedo, IN.texCoord);
+	vec3 bumpNormal = texture(normal, IN.texCoord).rgb;
+	sceneNormalTex = normalize(TBN * normalize(bumpNormal * 2.0 - 1.0));
+
+
+    vec3 bumpTex = texture(normal, IN.texCoord).rgb * 2.0 - 1.0;
     colourTex = texture(albedo, IN.texCoord).rgb;
 }

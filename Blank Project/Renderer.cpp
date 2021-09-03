@@ -15,19 +15,19 @@ Renderer::Renderer(Window& w) : OGLRenderer(w) {
 	//cone = Mesh::LoadFromMeshFile("Cone.msh");
 	//cube = Mesh::LoadFromMeshFile("Cube.msh");
 	quad = Mesh::GenerateQuad();
-	heightMap = new HeightMap("C:/Users/SamHo/Documents/GitHub/VXGI/Textures/white-noise.jpg");
+	heightMap = new HeightMap("C:/Users/SamHo/Documents/GitHub/VXGI/Textures/noise.png");
 
 	//Load Textures
 	glGetString(GL_EXTENSIONS);
 	earthTex = SOIL_load_OGL_texture("C:/Users/SamHo/Documents/GitHub/VXGI/Textures/Barren Reds.jpg", SOIL_LOAD_AUTO, SOIL_CREATE_NEW_ID, SOIL_FLAG_MIPMAPS);
-	//earthBump = SOIL_load_OGL_texture(TEXTUREDIR"cw/AsphaltBump.jpg", SOIL_LOAD_AUTO, SOIL_CREATE_NEW_ID, SOIL_FLAG_MIPMAPS);
+	earthBump = SOIL_load_OGL_texture(TEXTUREDIR"cw/AsphaltBump.jpg", SOIL_LOAD_AUTO, SOIL_CREATE_NEW_ID, SOIL_FLAG_MIPMAPS);
 
 	if (!earthTex) {
 		return;
 	}
 
 	overgrowthTex = SOIL_load_OGL_texture("C:/Users/SamHo/Documents/GitHub/VXGI/Textures/cw/GrassDiffuse.jpg", SOIL_LOAD_AUTO, SOIL_CREATE_NEW_ID, SOIL_FLAG_MIPMAPS);
-	//overgrowthBump = SOIL_load_OGL_texture(TEXTUREDIR"cw/GrassBump.jpg", SOIL_LOAD_AUTO, SOIL_CREATE_NEW_ID, SOIL_FLAG_MIPMAPS);
+	overgrowthBump = SOIL_load_OGL_texture(TEXTUREDIR"cw/GrassBump.jpg", SOIL_LOAD_AUTO, SOIL_CREATE_NEW_ID, SOIL_FLAG_MIPMAPS);
 	//overgrowthMap = SOIL_load_OGL_texture(TEXTUREDIR"cw/GrassNoise.png", SOIL_LOAD_AUTO, SOIL_CREATE_NEW_ID, SOIL_FLAG_MIPMAPS);
 
 	//waterTex = SOIL_load_OGL_texture(TEXTUREDIR"cw/WaterDiffuse.jpg", SOIL_LOAD_AUTO, SOIL_CREATE_NEW_ID, SOIL_FLAG_MIPMAPS);
@@ -49,12 +49,9 @@ Renderer::Renderer(Window& w) : OGLRenderer(w) {
 
 
 	SetTextureRepeating(earthTex, true);
-	//SetTextureRepeating(earthBump, true);
+	SetTextureRepeating(earthBump, true);
 	SetTextureRepeating(overgrowthTex, true);
-	//SetTextureRepeating(overgrowthMap, true);
-	//SetTextureRepeating(waterTex, true);
-	//SetTextureRepeating(waterBump, true);
-	//SetTextureRepeating(buildingWindows, true);
+	SetTextureRepeating(overgrowthBump, true);
 	
 
 	Vector3 heightMapSize = heightMap->GetHeightMapSize();
@@ -109,6 +106,7 @@ Renderer::Renderer(Window& w) : OGLRenderer(w) {
 
 	BindShader(geomShader);
 	glUniform1i(glGetUniformLocation(geomShader->GetProgram(), "albedo"), 0);
+	glUniform1i(glGetUniformLocation(geomShader->GetProgram(), "normal"), 1);
 	BindShader(ssdoShader);
 	glUniform1i(glGetUniformLocation(ssdoShader->GetProgram(), "sceneDepthTex"), 0);
 	glUniform1i(glGetUniformLocation(ssdoShader->GetProgram(), "sceneNormalTex"), 1);
@@ -141,10 +139,8 @@ Renderer::Renderer(Window& w) : OGLRenderer(w) {
 	glUniform1i(glGetUniformLocation(skyboxShader->GetProgram(), "texAccLight"), 2);
 
 	//Buffers
-	//geometry buffer
 	glGenFramebuffers(1, &geomFBO);
 	glBindFramebuffer(GL_FRAMEBUFFER, geomFBO);
-	//Texture buffers
 	glGenTextures(1, &positionColourBuffer);
 	glBindTexture(GL_TEXTURE_2D, positionColourBuffer);
 	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA16F, w.GetScreenSize().x, w.GetScreenSize().y, 0, GL_RGB, GL_FLOAT, NULL);
@@ -153,38 +149,33 @@ Renderer::Renderer(Window& w) : OGLRenderer(w) {
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, positionColourBuffer, 0);
-	// - Normal color buffer
 	glGenTextures(1, &normalColourBuffer);
 	glBindTexture(GL_TEXTURE_2D, normalColourBuffer);
 	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, w.GetScreenSize().x, w.GetScreenSize().y, 0, GL_RGB, GL_FLOAT, NULL);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT1, GL_TEXTURE_2D, normalColourBuffer, 0);
-	// - Albedo color buffer
 	glGenTextures(1, &colourColourBuffer);
 	glBindTexture(GL_TEXTURE_2D, colourColourBuffer);
 	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, w.GetScreenSize().x, w.GetScreenSize().y, 0, GL_RGBA, GL_FLOAT, NULL);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT2, GL_TEXTURE_2D, colourColourBuffer, 0);
-	// - Depth color buffer
 	glGenTextures(1, &depthColourBuffer);
 	glBindTexture(GL_TEXTURE_2D, depthColourBuffer);
 	glTexImage2D(GL_TEXTURE_2D, 0, GL_RED, w.GetScreenSize().x, w.GetScreenSize().y, 0, GL_RGB, GL_FLOAT, NULL);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT3, GL_TEXTURE_2D, depthColourBuffer, 0);
-	// - Tell OpenGL which color attachments we'll use (of this framebuffer) for rendering 
+
 	GLuint attachments[4] = { GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1, GL_COLOR_ATTACHMENT2, GL_COLOR_ATTACHMENT3 };
 	glDrawBuffers(4, attachments);
-	// - Create and attach depth buffer (renderbuffer)
 	glGenRenderbuffers(1, &depthRenderBuffer);
 	glBindRenderbuffer(GL_RENDERBUFFER, depthRenderBuffer);
 	glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT, w.GetScreenSize().x, w.GetScreenSize().y);
 	glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, depthRenderBuffer);
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
-	// Also create framebuffer to hold SSDO processing stage 
 	glGenFramebuffers(1, &ssdoFBO);
 	glBindFramebuffer(GL_FRAMEBUFFER, ssdoFBO);
 	glGenTextures(1, &ssdoColorBuffer);
@@ -263,16 +254,12 @@ Renderer::Renderer(Window& w) : OGLRenderer(w) {
 
 	glEnable(GL_DEPTH_TEST);
 	glDepthFunc(GL_LESS);
-	//glDisable(GL_CULL_FACE);
-	//glEnable(GL_BLEND);
-	//glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 	glEnable(GL_TEXTURE_CUBE_MAP_SEAMLESS);
 
 	init = true;
 }
 
 Renderer::~Renderer(void) {
-	// Delete shaders and buffers
 	delete geomShader;
 	delete ssdoShader;
 	delete blurShader;
@@ -325,7 +312,6 @@ void Renderer::UpdateScene(float dt) {
 		drawMode = 11;
 	if (Window::GetKeyboard()->KeyTriggered(KEYBOARD_O))
 		drawMode = 12;
-	//std::cout << drawMode << " ";
 }
 
 void Renderer::RenderScene() {
@@ -347,17 +333,23 @@ void Renderer::GeomPass() {
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	glActiveTexture(GL_TEXTURE0);
 	glBindTexture(GL_TEXTURE_2D, earthTex);
+	glActiveTexture(GL_TEXTURE1);
+	glBindTexture(GL_TEXTURE_2D, earthBump);
 	modelMatrix = Matrix4::Translation(Vector3(2000, 250, 2000)) * Matrix4::Rotation(90, Vector3(1,0,0)) * Matrix4::Scale(Vector3(1000, 1000, 1000));
 	UpdateShaderMatrices();
-	//quad->Draw();
+	quad->Draw();
 	modelMatrix = Matrix4::Translation(Vector3(2000, 300, 2000)) * Matrix4::Scale(Vector3(100, 100, 100));
 	glActiveTexture(GL_TEXTURE0);
 	glBindTexture(GL_TEXTURE_2D, overgrowthTex);
+	glActiveTexture(GL_TEXTURE1);
+	glBindTexture(GL_TEXTURE_2D, overgrowthBump);
 	UpdateShaderMatrices();
 	sphere->Draw();
 	modelMatrix = Matrix4::Translation(Vector3(0, 0, 0)) * Matrix4::Scale(Vector3(1, 1, 1));
 	glActiveTexture(GL_TEXTURE0);
 	glBindTexture(GL_TEXTURE_2D, earthTex);
+	glActiveTexture(GL_TEXTURE1);
+	glBindTexture(GL_TEXTURE_2D, earthBump);
 	UpdateShaderMatrices();
 	heightMap->Draw();
 	modelMatrix.ToIdentity();
@@ -405,11 +397,8 @@ void Renderer::SSDOLightPass() {
 	glBindTexture(GL_TEXTURE_2D, normalColourBuffer);
 	glActiveTexture(GL_TEXTURE2);
 	glBindTexture(GL_TEXTURE_2D, colourColourBuffer);
-	// Also send light relevant uniforms
-	// Update attenuation parameters
 	const GLfloat linear = 0.09;
 	const GLfloat quadratic = 0.032;
-	Vector3 lightPos2 = Matrix4::Rotation(camera->GetYaw(), Vector3(0,1,0)) * lightPos;
 	glUniform1f(glGetUniformLocation(lightingShader->GetProgram(), "light.Linear"), linear);
 	glUniform1f(glGetUniformLocation(lightingShader->GetProgram(), "light.Quadratic"), quadratic);
 	glUniform3fv(glGetUniformLocation(lightingShader->GetProgram(), "light.Position"), 1, &lightPos.x);
@@ -486,5 +475,5 @@ void Renderer::SSDOSkyboxPass() {
 	glBindTexture(GL_TEXTURE_2D, ssdoColorBufferAccLight);
 	UpdateShaderMatrices();
 	quad->Draw();
-	glDepthFunc(GL_LESS); // Set depth function back to default
+	glDepthFunc(GL_LESS);
 }

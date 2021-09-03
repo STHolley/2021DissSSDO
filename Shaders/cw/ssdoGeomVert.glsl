@@ -2,11 +2,15 @@
 in vec3 position;
 in vec3 normal;
 in vec2 texCoord;
+in vec4 tangent;
 
-out Vertex {
-    vec2 texCoord;
-    vec3 normal;
-    vec3 worldPos;
+out Vertex{
+	vec4 colour;
+	vec2 texCoord;
+	vec3 normal;
+	vec3 tangent;
+	vec3 binormal;
+	vec3 worldPos;
 } OUT;
 
 uniform mat4 modelMatrix;
@@ -22,5 +26,11 @@ void main()
     OUT.texCoord = texCoord;
     
     mat3 normalMatrix = transpose(inverse(mat3(viewMatrix * modelMatrix)));
-    OUT.normal = normalMatrix * normal;
+
+    vec3 wNormal = normalize(normalMatrix * normalize(normal));
+	vec3 wTangent = normalize(normalMatrix * normalize(tangent.xyz));
+
+	OUT.normal = wNormal;
+	OUT.tangent = wTangent;
+	OUT.binormal = cross(wTangent, wNormal) * tangent.w;
 }

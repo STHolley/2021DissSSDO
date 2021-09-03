@@ -62,7 +62,7 @@ void main()
 		}
         
     }
-    directionalLight /= kernelSize * 2;
+    directionalLight /= kernelSize * 4;
     
     fragColour = directionalLight;
 }
