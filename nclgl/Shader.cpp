@@ -61,10 +61,10 @@ void	Shader::Reload(bool deleteOld) {
 }
 
 bool	Shader::LoadShaderFile(const string& filename, string &into)	{
-	ifstream	file("C:/Users/SamHo/Documents/GitHub/VXGI/Shaders/" + filename);
+	ifstream	file("../Shaders/" + filename);
 	string		textLine;
 
-	cout << "Loading shader text from " << "C:/Users/SamHo/Documents/GitHub/VXGI/Shaders/" << filename << "\n\n";
+	cout << "Loading shader text from " << "../Shaders/" << filename << "\n\n";
 
 	if(!file.is_open()){
 		cout << "ERROR ERROR ERROR ERROR: File does not exist!\n";

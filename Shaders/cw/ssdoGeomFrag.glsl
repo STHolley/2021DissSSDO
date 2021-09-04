@@ -34,7 +34,7 @@ void main()
 
 	vec4 diffuse = texture(albedo, IN.texCoord);
 	vec3 bumpNormal = texture(normal, IN.texCoord).rgb;
-	//sceneNormalTex = normalize(TBN * normalize(bumpNormal * 2.0 - 1.0));
+	//sceneNormalTex = (sceneNormalTex * 0.75) + (bumpNormal * 0.25);
 
 
     vec3 bumpTex = texture(normal, IN.texCoord).rgb * 2.0 - 1.0;

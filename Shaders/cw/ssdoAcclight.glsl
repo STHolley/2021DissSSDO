@@ -1,5 +1,5 @@
 #version 330 core
-out vec3 FragColor;
+out vec3 fragColour;
 in Vertex{
     vec2 texCoord;
 } IN;
@@ -16,7 +16,6 @@ uniform int draw_mode;
 
 void main()
 {
-    // Get input for SSDO algorithm
     vec3 fragPos = texture(sceneDepthTex, IN.texCoord).xyz;
     vec3 normal = texture(sceneNormalTex, IN.texCoord).rgb;	
 	vec3 lighting = texture(texLighting, IN.texCoord).rgb;
@@ -26,30 +25,43 @@ void main()
 	vec3 indirectLight = texture(texIndirectLight, IN.texCoord).rgb;
 	vec3 indirectLightBlur = texture(texIndirectLightBlur, IN.texCoord).rgb;
 	
-	// Based on which of the 1 - 9, 0, P, O keys we pressed, show specific buffer values
-    if(draw_mode == 1)
-        FragColor = lighting;
-	else if(draw_mode == 2)
-        FragColor = lighting + directionalLight;
-	else if(draw_mode == 3)
-        FragColor = lighting + directionalLightBlur;
-	else if(draw_mode == 4)
-        FragColor = lighting + directionalLightBlur + indirectLight;
-	else if(draw_mode == 5)
-        FragColor = lighting + directionalLightBlur + indirectLightBlur;
-    else if(draw_mode == 6)
-        FragColor = vec3(depth / 50.0);
-    else if(draw_mode == 7)
-        FragColor = fragPos;
-    else if(draw_mode == 8)
-        FragColor = normal;
-    else if(draw_mode == 9)
-        FragColor = directionalLight;
-	else if(draw_mode == 10)
-        FragColor = directionalLightBlur;
-	else if(draw_mode == 11)
-        FragColor = indirectLight;
-	else if(draw_mode == 12)
-        FragColor = indirectLightBlur;
+    switch(draw_mode){
+    case(1):
+        fragColour = lighting;
+        break;
+	case(2):
+        fragColour = lighting + directionalLight;
+        break;
+	case(3):
+        fragColour = lighting + directionalLightBlur;
+        break;
+	case(4):
+        fragColour = lighting + directionalLightBlur + indirectLight;
+        break;
+	case(5):
+        fragColour = lighting + directionalLightBlur + indirectLightBlur;
+        break;
+    case(6):
+        fragColour = vec3(depth / 50.0);
+        break;
+    case(7):
+        fragColour = fragPos;
+        break;
+    case(8):
+        fragColour = normal;
+        break;
+    case(9):
+        fragColour = directionalLight;
+        break;
+	case(10):
+        fragColour = directionalLightBlur;
+        break;
+	case(11):
+        fragColour = indirectLight;
+        break;
+	case(12):
+        fragColour = indirectLightBlur;
+        break;
+    }
 		
 }

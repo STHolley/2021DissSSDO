@@ -15,26 +15,26 @@ Renderer::Renderer(Window& w) : OGLRenderer(w) {
 	//cone = Mesh::LoadFromMeshFile("Cone.msh");
 	//cube = Mesh::LoadFromMeshFile("Cube.msh");
 	quad = Mesh::GenerateQuad();
-	heightMap = new HeightMap("C:/Users/SamHo/Documents/GitHub/VXGI/Textures/noise.png");
+	heightMap = new HeightMap(TEXTUREDIR"noise.png");
 	actor = Mesh::LoadFromMeshFile("Role_T.msh");
 
 	//Load Textures
 	glGetString(GL_EXTENSIONS);
-	earthTex = SOIL_load_OGL_texture("C:/Users/SamHo/Documents/GitHub/VXGI/Textures/Barren Reds.jpg", SOIL_LOAD_AUTO, SOIL_CREATE_NEW_ID, SOIL_FLAG_MIPMAPS);
+	earthTex = SOIL_load_OGL_texture(TEXTUREDIR"Barren Reds.jpg", SOIL_LOAD_AUTO, SOIL_CREATE_NEW_ID, SOIL_FLAG_MIPMAPS);
 	earthBump = SOIL_load_OGL_texture(TEXTUREDIR"cw/AsphaltBump.jpg", SOIL_LOAD_AUTO, SOIL_CREATE_NEW_ID, SOIL_FLAG_MIPMAPS);
 
-	overgrowthTex = SOIL_load_OGL_texture("C:/Users/SamHo/Documents/GitHub/VXGI/Textures/cw/GrassDiffuse.jpg", SOIL_LOAD_AUTO, SOIL_CREATE_NEW_ID, SOIL_FLAG_MIPMAPS);
+	overgrowthTex = SOIL_load_OGL_texture(TEXTUREDIR"cw/GrassDiffuse.jpg", SOIL_LOAD_AUTO, SOIL_CREATE_NEW_ID, SOIL_FLAG_MIPMAPS);
 	overgrowthBump = SOIL_load_OGL_texture(TEXTUREDIR"cw/GrassBump.jpg", SOIL_LOAD_AUTO, SOIL_CREATE_NEW_ID, SOIL_FLAG_MIPMAPS);
 	
-	redTex = SOIL_load_OGL_texture("C:/Users/SamHo/Documents/GitHub/VXGI/Textures/red.png", SOIL_LOAD_AUTO, SOIL_CREATE_NEW_ID, SOIL_FLAG_MIPMAPS);
-	greenTex = SOIL_load_OGL_texture("C:/Users/SamHo/Documents/GitHub/VXGI/Textures/green.png", SOIL_LOAD_AUTO, SOIL_CREATE_NEW_ID, SOIL_FLAG_MIPMAPS);
+	redTex = SOIL_load_OGL_texture(TEXTUREDIR"red.png", SOIL_LOAD_AUTO, SOIL_CREATE_NEW_ID, SOIL_FLAG_MIPMAPS);
+	greenTex = SOIL_load_OGL_texture(TEXTUREDIR"green.png", SOIL_LOAD_AUTO, SOIL_CREATE_NEW_ID, SOIL_FLAG_MIPMAPS);
 
-	cubeMap = SOIL_load_OGL_cubemap("C:/Users/SamHo/Documents/GitHub/VXGI/Textures/cw/skybox/miramar_rt.tga", 
-		"C:/Users/SamHo/Documents/GitHub/VXGI/Textures/cw/skybox/miramar_lf.tga",
-		"C:/Users/SamHo/Documents/GitHub/VXGI/Textures/cw/skybox/miramar_up.tga",
-		"C:/Users/SamHo/Documents/GitHub/VXGI/Textures/cw/skybox/miramar_dn.tga",
-		"C:/Users/SamHo/Documents/GitHub/VXGI/Textures/cw/skybox/miramar_bk.tga",
-		"C:/Users/SamHo/Documents/GitHub/VXGI/Textures/cw/skybox/miramar_ft.tga",
+	cubeMap = SOIL_load_OGL_cubemap(TEXTUREDIR"cw/skybox/miramar_rt.tga",
+		TEXTUREDIR"cw/skybox/miramar_lf.tga",
+		TEXTUREDIR"cw/skybox/miramar_up.tga",
+		TEXTUREDIR"cw/skybox/miramar_dn.tga",
+		TEXTUREDIR"cw/skybox/miramar_bk.tga",
+		TEXTUREDIR"cw/skybox/miramar_ft.tga",
 		SOIL_LOAD_RGB, SOIL_CREATE_NEW_ID, 0);
 
 
@@ -405,9 +405,12 @@ void Renderer::SSDOLightPass() {
 	glBindTexture(GL_TEXTURE_2D, colourColourBuffer);
 	const GLfloat linear = 0.09;
 	const GLfloat quadratic = 0.032;
+	Matrix4 camMat = camera->BuildMatrixView();
+	camMat.SetPositionVector(Vector3(0, 0, 0));
+	Vector3 lightPos2 = camMat * lightPos;
 	glUniform1f(glGetUniformLocation(lightingShader->GetProgram(), "light.Linear"), linear);
 	glUniform1f(glGetUniformLocation(lightingShader->GetProgram(), "light.Quadratic"), quadratic);
-	glUniform3fv(glGetUniformLocation(lightingShader->GetProgram(), "light.Position"), 1, &lightPos.x);
+	glUniform3fv(glGetUniformLocation(lightingShader->GetProgram(), "light.Position"), 1, &lightPos2.x);
 	glUniform3fv(glGetUniformLocation(lightingShader->GetProgram(), "light.Color"), 1, &lightCol.x);
 	glUniform1f(glGetUniformLocation(lightingShader->GetProgram(), "light.Radius"), 500.0f);
 	UpdateShaderMatrices();
