@@ -19,9 +19,9 @@
     </ProjectConfiguration>
   </ItemGroup>
   <PropertyGroup Label="Globals">
-    <ProjectGuid>{15681E3C-A747-42F0-B091-5F1300F14F52}</ProjectGuid>
+    <ProjectGuid>{8274D442-89CD-4AC2-AA8E-A9FA621452ED}</ProjectGuid>
     <RootNamespace>Tutorial1</RootNamespace>
-    <ProjectName>ZXEmulator</ProjectName>
+    <ProjectName>SSDOGLSL</ProjectName>
     <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
@@ -136,8 +136,8 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="main.cpp" />
     <ClCompile Include="Renderer.cpp" />
-    <ClCompile Include="ZXEmulator.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Renderer.h" />
