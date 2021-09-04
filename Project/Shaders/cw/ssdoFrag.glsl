@@ -13,7 +13,7 @@ uniform samplerCube skybox;
 uniform vec3 samples[64];
 
 // parameters (you'd probably want to use them as uniforms to more easily tweak the effect)
-int kernelSize = 64;
+int kernelSize = 32;
 float radius = 5.0;
 
 // tile noise texture over screen based on screen dimensions divided by noise size

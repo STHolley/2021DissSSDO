@@ -5,7 +5,7 @@
 #include <algorithm>
 #include <random>
 
-const int LIGHT_NUM = 64;
+const int KERNEL_SIZE = 32;
 #define SHADOWSIZE 4096
 const int POST_PASSES = 10;
 
@@ -63,7 +63,7 @@ Renderer::Renderer(Window& w) : OGLRenderer(w) {
 	std::uniform_real_distribution<float> randomFloats(0.0, 1.0); // random floats between [0.0, 1.0]
 	std::default_random_engine generator;
 	std::cout << "samples:\n";
-	for (int i = 0; i < 64; ++i)
+	for (int i = 0; i < KERNEL_SIZE; ++i)
 	{
 		Vector3 sample(
 			randomFloats(generator) * 2.0 - 1.0,
@@ -374,7 +374,7 @@ void Renderer::SSDOPass() {
 	glBindTexture(GL_TEXTURE_2D, noiseTexture);
 	glActiveTexture(GL_TEXTURE3);
 	glBindTexture(GL_TEXTURE_CUBE_MAP, cubeMap);
-	for (GLuint i = 0; i < 64; ++i)
+	for (GLuint i = 0; i < KERNEL_SIZE; ++i)
 		glUniform3fv(glGetUniformLocation(ssdoShader->GetProgram(), ("samples[" + std::to_string(i) + "]").c_str()), 1, &ssdoKernel[i].x);
 	UpdateShaderMatrices();
 	quad->Draw();
@@ -430,7 +430,7 @@ void Renderer::SSDOIndirectPass() {
 	glBindTexture(GL_TEXTURE_2D, noiseTexture);
 	glActiveTexture(GL_TEXTURE3);
 	glBindTexture(GL_TEXTURE_2D, ssdoColorBufferLighting);
-	for (GLuint i = 0; i < 64; ++i)
+	for (GLuint i = 0; i < KERNEL_SIZE; ++i)
 		glUniform3fv(glGetUniformLocation(indirectShader->GetProgram(), ("samples[" + std::to_string(i) + "]").c_str()), 1, &ssdoKernel[i].x);
 	UpdateShaderMatrices();
 	quad->Draw();
