@@ -20,7 +20,7 @@ uniform mat4 projMatrix;
 void main()
 {
     vec4 viewPos = viewMatrix * modelMatrix * vec4(position, 1.0f);
-    OUT.worldPos = viewPos.xyz / 10.0f; 
+    OUT.worldPos = viewPos.xyz; 
     gl_Position = projMatrix * viewPos;
     
     OUT.texCoord = texCoord;

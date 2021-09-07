@@ -56,8 +56,8 @@ protected:
 
 	std::vector<Vector3> ssdoKernel;
 
-	Vector3 lightCol = Vector3(1, 1, 1);
-	Vector3 lightPos = Vector3(0, 1, 0);
+	Vector3 lightCol = Vector3(201/510.0, 226/ 510.0, 255/ 510.0);
+	Vector3 lightPos = Vector3(-2, 2, 2);
 
 	HeightMap* heightMap;
 

@@ -10,11 +10,11 @@ uniform sampler2D sceneNormalTex;
 uniform sampler2D noiseTex;
 uniform samplerCube skybox;
 
-uniform vec3 samples[64];
+uniform vec3 samples[32];
 
 // parameters (you'd probably want to use them as uniforms to more easily tweak the effect)
 int kernelSize = 32;
-float radius = 5.0;
+float radius = 1.0;
 
 // tile noise texture over screen based on screen dimensions divided by noise size
 const vec2 noiseScale = vec2(1500.0f/4.0f, 1000.0f/4.0f); 
@@ -60,7 +60,7 @@ void main()
         directionalLight += (sampleDepth < samp.z ? 1.0 : 0.0) * skyboxColor * dot(normal, normalize(samp - fragPos));
         
     }
-    directionalLight /= kernelSize * 4;
+    directionalLight /= kernelSize;
     
     fragColour = directionalLight;
 }

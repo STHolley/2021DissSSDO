@@ -11,6 +11,7 @@ uniform sampler2D ssdoBlur; // SSDO blur pass output
 uniform sampler2D texLighting; //SSDO lighting output
 uniform sampler2D texIndirectLight; //SSDO indirect lighting output
 uniform sampler2D texIndirectLightBlur; //SSDO indirect blur lighting output
+uniform sampler2D albedo;
 
 uniform int draw_mode;
 
@@ -24,6 +25,7 @@ void main()
 	vec3 directionalLightBlur = texture(ssdoBlur, IN.texCoord).rgb;
 	vec3 indirectLight = texture(texIndirectLight, IN.texCoord).rgb;
 	vec3 indirectLightBlur = texture(texIndirectLightBlur, IN.texCoord).rgb;
+    vec3 albedoColour = texture(albedo, IN.texCoord).rgb;
 	
     switch(draw_mode){
     case(1):
@@ -42,7 +44,7 @@ void main()
         fragColour = lighting + directionalLightBlur + indirectLightBlur;
         break;
     case(6):
-        fragColour = vec3(depth / 50.0);
+        fragColour = vec3(depth / 5.0);
         break;
     case(7):
         fragColour = fragPos;
@@ -61,6 +63,9 @@ void main()
         break;
 	case(12):
         fragColour = indirectLightBlur;
+        break;
+    case(13):
+        fragColour = albedoColour;
         break;
     }
 		

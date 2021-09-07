@@ -48,7 +48,7 @@ Renderer::Renderer(Window& w) : OGLRenderer(w) {
 
 	Vector3 heightMapSize = heightMap->GetHeightMapSize();
 
-	camera = new Camera(0, 0, Vector3(5, 40, 5));
+	camera = new Camera(0, 0, Vector3(0.5, 4, 0.5));
 
 	//Load Shaders
 	geomShader = new Shader("cw/ssdoGeomVert.glsl", "cw/ssdoGeomFrag.glsl");
@@ -125,6 +125,7 @@ Renderer::Renderer(Window& w) : OGLRenderer(w) {
 	glUniform1i(glGetUniformLocation(accLightShader->GetProgram(), "texLighting"), 4);
 	glUniform1i(glGetUniformLocation(accLightShader->GetProgram(), "texIndirectLight"), 5);
 	glUniform1i(glGetUniformLocation(accLightShader->GetProgram(), "texIndirectLightBlur"), 6);
+	glUniform1i(glGetUniformLocation(accLightShader->GetProgram(), "albedo"), 7);
 	BindShader(skyboxShader);
 	glUniform1i(glGetUniformLocation(skyboxShader->GetProgram(), "skybox"), 0);
 	glUniform1i(glGetUniformLocation(skyboxShader->GetProgram(), "depthTex"), 1);
@@ -304,6 +305,8 @@ void Renderer::UpdateScene(float dt) {
 		drawMode = 11;
 	if (Window::GetKeyboard()->KeyTriggered(KEYBOARD_O))
 		drawMode = 12;
+	if (Window::GetKeyboard()->KeyTriggered(KEYBOARD_L))
+		drawMode = 13;
 }
 
 void Renderer::RenderScene() {
@@ -327,31 +330,31 @@ void Renderer::GeomPass() {
 	glBindTexture(GL_TEXTURE_2D, earthTex);
 	glActiveTexture(GL_TEXTURE1);
 	glBindTexture(GL_TEXTURE_2D, earthBump);
-	modelMatrix = Matrix4::Translation(Vector3(0, 25, 0)) * Matrix4::Rotation(90, Vector3(1,0,0)) * Matrix4::Scale(Vector3(100, 100, 100));
+	modelMatrix = Matrix4::Translation(Vector3(0, 2.5, 0)) * Matrix4::Rotation(90, Vector3(1,0,0)) * Matrix4::Scale(Vector3(10, 10, 10));
 	UpdateShaderMatrices();
 	quad->Draw();
 	glActiveTexture(GL_TEXTURE0);
 	glBindTexture(GL_TEXTURE_2D, redTex);
 	glActiveTexture(GL_TEXTURE1);
 	glBindTexture(GL_TEXTURE_2D, NULL);
-	modelMatrix = Matrix4::Translation(Vector3(0, 125, 100)) * Matrix4::Rotation(0, Vector3(1, 0, 0)) * Matrix4::Scale(Vector3(100, 100, 100));
+	modelMatrix = Matrix4::Translation(Vector3(0, 12.5, 10)) * Matrix4::Rotation(0, Vector3(1, 0, 0)) * Matrix4::Scale(Vector3(10, 10, 10));
 	UpdateShaderMatrices();
 	quad->Draw();
 	glActiveTexture(GL_TEXTURE0);
 	glBindTexture(GL_TEXTURE_2D, greenTex);
 	glActiveTexture(GL_TEXTURE1);
 	glBindTexture(GL_TEXTURE_2D, NULL);
-	modelMatrix = Matrix4::Translation(Vector3(100, 125, 0)) * Matrix4::Rotation(90, Vector3(0, 1, 0)) * Matrix4::Scale(Vector3(100, 100, 100));
+	modelMatrix = Matrix4::Translation(Vector3(10, 12.5, 0)) * Matrix4::Rotation(90, Vector3(0, 1, 0)) * Matrix4::Scale(Vector3(10, 10, 10));
 	UpdateShaderMatrices();
 	quad->Draw();
-	modelMatrix = Matrix4::Translation(Vector3(0, 30, 0)) * Matrix4::Scale(Vector3(10, 10, 10));
+	modelMatrix = Matrix4::Translation(Vector3(0, 3, 0)) * Matrix4::Scale(Vector3(10, 10, 10));
 	glActiveTexture(GL_TEXTURE0);
 	glBindTexture(GL_TEXTURE_2D, overgrowthTex);
 	glActiveTexture(GL_TEXTURE1);
 	glBindTexture(GL_TEXTURE_2D, overgrowthBump);
 	UpdateShaderMatrices();
 	//sphere->Draw();
-	modelMatrix = Matrix4::Translation(Vector3(75, 25, 75)) * Matrix4::Rotation(225, Vector3(0, 1, 0)) * Matrix4::Scale(Vector3(20, 20, 20));
+	modelMatrix = Matrix4::Translation(Vector3(7.5, 2.5, 7.5)) * Matrix4::Rotation(225, Vector3(0, 1, 0)) * Matrix4::Scale(Vector3(2, 2, 2));
 	glActiveTexture(GL_TEXTURE0);
 	glBindTexture(GL_TEXTURE_2D, overgrowthTex);
 	glActiveTexture(GL_TEXTURE1);
@@ -407,12 +410,13 @@ void Renderer::SSDOLightPass() {
 	const GLfloat quadratic = 0.032;
 	Matrix4 camMat = camera->BuildMatrixView();
 	camMat.SetPositionVector(Vector3(0, 0, 0));
-	Vector3 lightPos2 = camMat * lightPos;
+	Vector3 test = camMat * (lightPos);// +((camera->GetPosition() - Vector3(5, 40, 5)) / 50);
+	std::cout << test;
 	glUniform1f(glGetUniformLocation(lightingShader->GetProgram(), "light.Linear"), linear);
 	glUniform1f(glGetUniformLocation(lightingShader->GetProgram(), "light.Quadratic"), quadratic);
-	glUniform3fv(glGetUniformLocation(lightingShader->GetProgram(), "light.Position"), 1, &lightPos2.x);
-	glUniform3fv(glGetUniformLocation(lightingShader->GetProgram(), "light.Color"), 1, &lightCol.x);
-	glUniform1f(glGetUniformLocation(lightingShader->GetProgram(), "light.Radius"), 500.0f);
+	glUniform3fv(glGetUniformLocation(lightingShader->GetProgram(), "light.Position"), 1, &test.x);
+	glUniform3fv(glGetUniformLocation(lightingShader->GetProgram(), "light.Colour"), 1, &lightCol.x);
+	glUniform1f(glGetUniformLocation(lightingShader->GetProgram(), "light.Radius"), 5);
 	UpdateShaderMatrices();
 	quad->Draw();
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
@@ -466,6 +470,8 @@ void Renderer::SSDOAccLightPass() {
 	glBindTexture(GL_TEXTURE_2D, ssdoColorBufferIndirect);
 	glActiveTexture(GL_TEXTURE6);
 	glBindTexture(GL_TEXTURE_2D, ssdoColorBufferIndirectBlur);
+	glActiveTexture(GL_TEXTURE7);
+	glBindTexture(GL_TEXTURE_2D, colourColourBuffer);
 	glUniform1i(glGetUniformLocation(accLightShader->GetProgram(), "draw_mode"), drawMode);
 	UpdateShaderMatrices();
 	quad->Draw();
