@@ -17,7 +17,8 @@ int kernelSize = 32;
 float radius = 1.0;
 
 // tile noise texture over screen based on screen dimensions divided by noise size
-const vec2 noiseScale = vec2(1500.0f/4.0f, 1000.0f/4.0f); 
+//1484 961
+const vec2 noiseScale = vec2(1484.0f/4.0f, 961.0f/4.0f); 
 
 uniform mat4 viewMatrix;
 uniform mat4 projMatrix;
