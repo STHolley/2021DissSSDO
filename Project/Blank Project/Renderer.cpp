@@ -48,7 +48,7 @@ Renderer::Renderer(Window& w) : OGLRenderer(w) {
 
 	Vector3 heightMapSize = heightMap->GetHeightMapSize();
 
-	camera = new Camera(0, 0, Vector3(0.5, 4, 0.5));
+	camera = new Camera(-10, 225, Vector3(0.5, 6, 0.5));
 
 	//Load Shaders
 	geomShader = new Shader("cw/ssdoGeomVert.glsl", "cw/ssdoGeomFrag.glsl");

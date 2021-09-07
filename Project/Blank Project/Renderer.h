@@ -30,7 +30,7 @@ protected:
 	vector<Vector3> lightCycle;
 	int stationNum = 0;
 
-	int drawMode = 1;
+	int drawMode = 13;
 	Frustum frameFrustum;
 
 	Shader* geomShader;
