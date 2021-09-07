@@ -31,7 +31,7 @@ protected:
 	int stationNum = 0;
 
 	int drawMode = 13;
-	Frustum frameFrustum;
+	Vector2 windowSize;
 
 	Shader* geomShader;
 	Shader* ssdoShader;

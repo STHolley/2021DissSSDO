@@ -5,17 +5,15 @@
 #include <algorithm>
 #include <random>
 
-const int KERNEL_SIZE = 32;
-#define SHADOWSIZE 4096
+const int KERNEL_SIZE = 16;
 const int POST_PASSES = 10;
 
 Renderer::Renderer(Window& w) : OGLRenderer(w) {
+	windowSize = w.GetScreenSize();
+	
 	//Load meshes
 	sphere = Mesh::LoadFromMeshFile("Sphere.msh");
-	//cone = Mesh::LoadFromMeshFile("Cone.msh");
-	//cube = Mesh::LoadFromMeshFile("Cube.msh");
 	quad = Mesh::GenerateQuad();
-	heightMap = new HeightMap(TEXTUREDIR"noise.png");
 	actor = Mesh::LoadFromMeshFile("Role_T.msh");
 
 	//Load Textures
@@ -62,7 +60,6 @@ Renderer::Renderer(Window& w) : OGLRenderer(w) {
 
 	std::uniform_real_distribution<float> randomFloats(0.0, 1.0); // random floats between [0.0, 1.0]
 	std::default_random_engine generator;
-	std::cout << "samples:\n";
 	for (int i = 0; i < KERNEL_SIZE; ++i)
 	{
 		Vector3 sample(
@@ -76,14 +73,11 @@ Renderer::Renderer(Window& w) : OGLRenderer(w) {
 		scale = lerp(0.1f, 1.0f, scale * scale);
 		sample = sample * scale;
 		ssdoKernel.push_back(sample);
-		std::cout << sample;
 	}
 
-	std::cout << "\n";
 	vector<Vector3> ssaoNoise;
 	for (unsigned int i = 0; i < 16; i++)
 	{
-		std::cout << "\nNext Tex Pixel\nx:";
 		Vector3 temp(randomFloats(generator) * 2.0 - 1.0, randomFloats(generator) * 2.0 - 1.0, 0.0f);
 		ssaoNoise.push_back(temp);
 	}
@@ -177,8 +171,6 @@ Renderer::Renderer(Window& w) : OGLRenderer(w) {
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, ssdoColorBuffer, 0);
-	if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
-		std::cout << "SSDO Framebuffer not complete!" << std::endl;
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
 	glGenFramebuffers(1, &ssdoBlurFBO);
@@ -189,8 +181,6 @@ Renderer::Renderer(Window& w) : OGLRenderer(w) {
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, ssdoColorBufferBlur, 0);
-	if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
-		std::cout << "SSDO Blur Framebuffer not complete!" << std::endl;
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
 
@@ -202,8 +192,6 @@ Renderer::Renderer(Window& w) : OGLRenderer(w) {
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, ssdoColorBufferLighting, 0);
-	if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
-		std::cout << "SSDO Lighting Framebuffer not complete!" << std::endl;
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 	
 	glGenFramebuffers(1, &ssdoIndirectFBO);
@@ -214,8 +202,6 @@ Renderer::Renderer(Window& w) : OGLRenderer(w) {
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, ssdoColorBufferIndirect, 0);
-	if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
-		std::cout << "SSDO Indirect Framebuffer not complete!" << std::endl;
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
 	glGenFramebuffers(1, &ssdoIndirectBlurFBO);
@@ -226,8 +212,6 @@ Renderer::Renderer(Window& w) : OGLRenderer(w) {
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, ssdoColorBufferIndirectBlur, 0);
-	if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
-		std::cout << "SSDO Indirect Blur Framebuffer not complete!" << std::endl;
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
 	glGenFramebuffers(1, &ssdoAccLightFBO);
@@ -238,8 +222,6 @@ Renderer::Renderer(Window& w) : OGLRenderer(w) {
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, ssdoColorBufferAccLight, 0);
-	if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
-		std::cout << "SSDO Accumulate Light Framebuffer not complete!" << std::endl;
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
 	
@@ -379,6 +361,8 @@ void Renderer::SSDOPass() {
 	glBindTexture(GL_TEXTURE_CUBE_MAP, cubeMap);
 	for (GLuint i = 0; i < KERNEL_SIZE; ++i)
 		glUniform3fv(glGetUniformLocation(ssdoShader->GetProgram(), ("samples[" + std::to_string(i) + "]").c_str()), 1, &ssdoKernel[i].x);
+	glUniform1i(glGetUniformLocation(ssdoShader->GetProgram(), "kernelSize"), KERNEL_SIZE);
+	glUniform2fv(glGetUniformLocation(ssdoShader->GetProgram(), "windowSize"), 1, &windowSize.x);
 	UpdateShaderMatrices();
 	quad->Draw();
 
@@ -410,8 +394,7 @@ void Renderer::SSDOLightPass() {
 	const GLfloat quadratic = 0.032;
 	Matrix4 camMat = camera->BuildMatrixView();
 	camMat.SetPositionVector(Vector3(0, 0, 0));
-	Vector3 test = camMat * (lightPos);// +((camera->GetPosition() - Vector3(5, 40, 5)) / 50);
-	std::cout << test;
+	Vector3 test = camMat * (lightPos);
 	glUniform1f(glGetUniformLocation(lightingShader->GetProgram(), "light.Linear"), linear);
 	glUniform1f(glGetUniformLocation(lightingShader->GetProgram(), "light.Quadratic"), quadratic);
 	glUniform3fv(glGetUniformLocation(lightingShader->GetProgram(), "light.Position"), 1, &test.x);
@@ -436,6 +419,8 @@ void Renderer::SSDOIndirectPass() {
 	glBindTexture(GL_TEXTURE_2D, ssdoColorBufferLighting);
 	for (GLuint i = 0; i < KERNEL_SIZE; ++i)
 		glUniform3fv(glGetUniformLocation(indirectShader->GetProgram(), ("samples[" + std::to_string(i) + "]").c_str()), 1, &ssdoKernel[i].x);
+	glUniform1i(glGetUniformLocation(ssdoShader->GetProgram(), "kernelSize"), KERNEL_SIZE);
+	glUniform2fv(glGetUniformLocation(ssdoShader->GetProgram(), "windowSize"), 1, &windowSize.x);
 	UpdateShaderMatrices();
 	quad->Draw();
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
