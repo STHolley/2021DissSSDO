@@ -3,7 +3,7 @@
 
 
 int main() {
-	Window w("Coursework!", 1500, 1000, false); //This is all boring win32 window creation stuff!
+	Window w("Loading", 1500, 1000, false); //This is all boring win32 window creation stuff!
 	if (!w.HasInitialised()) {
 		return -1;
 	}
@@ -17,21 +17,14 @@ int main() {
 	w.ShowOSPointer(false);
 
 	while (w.UpdateWindow() && !Window::GetKeyboard()->KeyDown(KEYBOARD_ESCAPE)) {
-		renderer.UpdateScene(w.GetTimer()->GetTimeDeltaSeconds());
-		//std::cout << "Updated\n";
-		//while (w.UpdateWindow() && !Window::GetKeyboard()->KeyDown(KEYBOARD_D));
+		float dt = w.GetTimer()->GetTimeDeltaSeconds();
+		renderer.UpdateScene(dt);
+		w.SetTitle(std::to_string(dt));
 		renderer.RenderScene();
-		//std::cout << "Rendered\n";
-		//while (w.UpdateWindow() && !Window::GetKeyboard()->KeyDown(KEYBOARD_S));
 		renderer.SwapBuffers();
-		//std::cout << "Swapped\n";
-		//while (w.UpdateWindow() && !Window::GetKeyboard()->KeyDown(KEYBOARD_F));
 		if (Window::GetKeyboard()->KeyDown(KEYBOARD_F5)) {
 			Shader::ReloadAllShaders();
 		}
 	}
-
-	
-
 	return 0;
 }

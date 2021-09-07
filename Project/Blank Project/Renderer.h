@@ -1,12 +1,10 @@
 #pragma once
 #include "../nclgl/OGLRenderer.h"
 #include "..\nclgl\SceneNode.h"
-#include "..\nclgl\Frustum.h";
 #include "..\nclgl\MeshAnimation.h"
 #include "..\nclgl\MeshMaterial.h"
 class Camera;
 class Mesh;
-class HeightMap;
 
 class Renderer : public OGLRenderer {
 public:
@@ -27,12 +25,11 @@ protected:
 	void SSDOSkyboxPass();
 
 	float lerp(float x, float y, float t) { return x + t * (y - x); };
-	vector<Vector3> lightCycle;
-	int stationNum = 0;
 
-	int drawMode = 13;
-	Vector2 windowSize;
+	int drawMode = 13; //Starting draw mode in acc light shader
+	Vector2 windowSize; //render window size
 
+	//Shaders
 	Shader* geomShader;
 	Shader* ssdoShader;
 	Shader* blurShader;
@@ -42,42 +39,48 @@ protected:
 	Shader* accLightShader;
 	Shader* skyboxShader;
 
-	GLuint skyboxVAO, skyboxVBO;
-
+	//Frame Buffer Objects
 	GLuint geomFBO;
-	GLuint positionColourBuffer;
-	GLuint normalColourBuffer;
-	GLuint colourColourBuffer;
-	GLuint depthColourBuffer;
-	GLuint depthRenderBuffer;
+	GLuint ssdoFBO;
+	GLuint ssdoBlurFBO;
+	GLuint ssdoLightingFBO;
+	GLuint ssdoIndirectFBO;
+	GLuint ssdoIndirectBlurFBO;
+	GLuint ssdoAccLightFBO;
 
-	GLuint ssdoFBO, ssdoBlurFBO, ssdoLightingFBO, ssdoIndirectFBO, ssdoIndirectBlurFBO, ssdoAccLightFBO;
-	GLuint ssdoColorBuffer, ssdoColorBufferBlur, ssdoColorBufferLighting, ssdoColorBufferIndirect, ssdoColorBufferIndirectBlur, ssdoColorBufferAccLight;
+	//G-Buffers
+	GLuint positionColourBuffer; //From Geom step
+	GLuint normalColourBuffer; //From Geom step
+	GLuint colourColourBuffer; //From Geom step
+	GLuint depthColourBuffer; //From Geom step
+	GLuint depthRenderBuffer; //From Geom step
+	GLuint ssdoColorBuffer; //From SSDO step
+	GLuint ssdoColorBufferBlur; //From first blur step
+	GLuint ssdoColorBufferLighting; //From Lighting step
+	GLuint ssdoColorBufferIndirect; //From Indirect Lighting step
+	GLuint ssdoColorBufferIndirectBlur; //From second blur step
+	GLuint ssdoColorBufferAccLight; //From buffer accumulation step
 
-	std::vector<Vector3> ssdoKernel;
+	std::vector<Vector3> ssdoKernel; //Random vectors used for SSDO
 
-	Vector3 lightCol = Vector3(201/510.0, 226/ 510.0, 255/ 510.0);
+	//Scene point light information
+	Vector3 lightCol = Vector3(201/510.0, 226/ 510.0, 255/ 510.0); 
 	Vector3 lightPos = Vector3(-2, 2, 2);
 
-	HeightMap* heightMap;
-
+	//Meshes
 	Mesh* sphere;
 	Mesh* quad;
 	Mesh* actor;
 
-	Camera* camera;
-	Vector3 pointTo;
+	Camera* camera; //Scene camera
 
+	//Textures
 	GLuint cubeMap;
-
 	GLuint earthTex;
 	GLuint earthBump;
 	GLuint redTex;
 	GLuint greenTex;
 	GLuint overgrowthTex;
 	GLuint overgrowthBump;
-	
 	GLuint noiseTexture;
-
-	GLuint noise;
 };

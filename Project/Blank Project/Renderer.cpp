@@ -1,12 +1,10 @@
 #include "Renderer.h"
-#include "..\nclgl\HeightMap.h"
 #include "..\nclgl\Camera.h"
 #include "..\nclgl\Light.h"
 #include <algorithm>
 #include <random>
 
-const int KERNEL_SIZE = 16;
-const int POST_PASSES = 10;
+const int KERNEL_SIZE = 32;
 
 Renderer::Renderer(Window& w) : OGLRenderer(w) {
 	windowSize = w.GetScreenSize();
@@ -42,11 +40,6 @@ Renderer::Renderer(Window& w) : OGLRenderer(w) {
 	SetTextureRepeating(overgrowthBump, true);
 	SetTextureRepeating(redTex, true);
 	SetTextureRepeating(greenTex, true);
-	
-
-	Vector3 heightMapSize = heightMap->GetHeightMapSize();
-
-	camera = new Camera(-10, 225, Vector3(0.5, 6, 0.5));
 
 	//Load Shaders
 	geomShader = new Shader("cw/ssdoGeomVert.glsl", "cw/ssdoGeomFrag.glsl");
@@ -58,6 +51,7 @@ Renderer::Renderer(Window& w) : OGLRenderer(w) {
 	accLightShader = new Shader("cw/ssdoVert.glsl", "cw/ssdoAccLight.glsl");
 	skyboxShader = new Shader("cw/SkyboxVertex.glsl", "cw/SkyboxFragment.glsl");
 
+	//Generate random vectors for SSDO
 	std::uniform_real_distribution<float> randomFloats(0.0, 1.0); // random floats between [0.0, 1.0]
 	std::default_random_engine generator;
 	for (int i = 0; i < KERNEL_SIZE; ++i)
@@ -74,7 +68,6 @@ Renderer::Renderer(Window& w) : OGLRenderer(w) {
 		sample = sample * scale;
 		ssdoKernel.push_back(sample);
 	}
-
 	vector<Vector3> ssaoNoise;
 	for (unsigned int i = 0; i < 16; i++)
 	{
@@ -82,6 +75,7 @@ Renderer::Renderer(Window& w) : OGLRenderer(w) {
 		ssaoNoise.push_back(temp);
 	}
 	
+	//Generate SSDO noise texture
 	glGenTextures(1, &noiseTexture);
 	glBindTexture(GL_TEXTURE_2D, noiseTexture);
 	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA16F, 4, 4, 0, GL_RGB, GL_FLOAT, &ssaoNoise[0].x);
@@ -90,6 +84,7 @@ Renderer::Renderer(Window& w) : OGLRenderer(w) {
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
 
+	//Declare shader texture inputs
 	BindShader(geomShader);
 	glUniform1i(glGetUniformLocation(geomShader->GetProgram(), "albedo"), 0);
 	glUniform1i(glGetUniformLocation(geomShader->GetProgram(), "normal"), 1);
@@ -223,10 +218,12 @@ Renderer::Renderer(Window& w) : OGLRenderer(w) {
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, ssdoColorBufferAccLight, 0);
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
-
 	
+	//Set camera position and view
+	camera = new Camera(-10, 225, Vector3(0.5, 6, 0.5));
 	projMatrix = Matrix4::Perspective(1, 10000, (float)width / (float)height, 55);
 
+	//OGL properties
 	glEnable(GL_DEPTH_TEST);
 	glDepthFunc(GL_LESS);
 	glEnable(GL_TEXTURE_CUBE_MAP_SEAMLESS);
@@ -259,10 +256,12 @@ Renderer::~Renderer(void) {
 }
 
 void Renderer::UpdateScene(float dt) {
+	//Keep matrices updated
 	camera->UpdateCamera(dt);
 	viewMatrix = camera->BuildMatrixView();
 	projMatrix = Matrix4::Perspective(1, 10000, (float)width / (float)height, 55);
 
+	//Switch between draw options
 	if (Window::GetKeyboard()->KeyTriggered(KEYBOARD_1))
 		drawMode = 1;
 	if (Window::GetKeyboard()->KeyTriggered(KEYBOARD_2))
@@ -292,6 +291,7 @@ void Renderer::UpdateScene(float dt) {
 }
 
 void Renderer::RenderScene() {
+	//Complete each step of SSDO passes
 	glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	GeomPass();
