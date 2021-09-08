@@ -12,7 +12,7 @@ uniform samplerCube skybox;
 
 uniform vec3 samples[64];
 uniform int kernelSize;
-float radius = 5.0;
+float radius = 100.0;
 
 uniform vec2 windowSize;
 

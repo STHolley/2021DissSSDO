@@ -3,6 +3,7 @@
 #include "..\nclgl\Light.h"
 #include <algorithm>
 #include <random>
+#include <chrono>
 
 const int KERNEL_SIZE = 32;
 
@@ -294,14 +295,33 @@ void Renderer::RenderScene() {
 	//Complete each step of SSDO passes
 	glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+	auto start		= std::chrono::duration_cast<std::chrono::microseconds>(std::chrono::system_clock::now().time_since_epoch()).count();
 	GeomPass();
+	auto postGeom	= std::chrono::duration_cast<std::chrono::microseconds>(std::chrono::system_clock::now().time_since_epoch()).count() - start;
 	SSDOPass();
+	auto postSSDO	= std::chrono::duration_cast<std::chrono::microseconds>(std::chrono::system_clock::now().time_since_epoch()).count() - start - postGeom;
 	SSDOBlurPass();
+	auto postBlur	= std::chrono::duration_cast<std::chrono::microseconds>(std::chrono::system_clock::now().time_since_epoch()).count() - start - postGeom - postSSDO;
 	SSDOLightPass();
+	auto postDir	= std::chrono::duration_cast<std::chrono::microseconds>(std::chrono::system_clock::now().time_since_epoch()).count() - start - postGeom - postSSDO - postBlur;
 	SSDOIndirectPass();
+	auto postInd	= std::chrono::duration_cast<std::chrono::microseconds>(std::chrono::system_clock::now().time_since_epoch()).count() - start - postGeom - postSSDO - postBlur - postDir;
 	SSDOIndirectBlurPass();
+	auto postIBlur	= std::chrono::duration_cast<std::chrono::microseconds>(std::chrono::system_clock::now().time_since_epoch()).count() - start - postGeom - postSSDO - postBlur - postDir - postInd;
 	SSDOAccLightPass();
+	auto postAcc	= std::chrono::duration_cast<std::chrono::microseconds>(std::chrono::system_clock::now().time_since_epoch()).count() - start - postGeom - postSSDO - postBlur - postDir - postInd - postIBlur;
 	SSDOSkyboxPass();
+	auto end		= std::chrono::duration_cast<std::chrono::microseconds>(std::chrono::system_clock::now().time_since_epoch()).count() - start - postGeom - postSSDO - postBlur - postDir - postInd - postIBlur - postAcc;
+
+	std::cout << "Geom time: "			<< (postGeom / 1000.0f) << "ms" << std::endl;
+	std::cout << "SSDO time: "			<< (postSSDO / 1000.0f) << "ms" << std::endl;
+	std::cout << "Blur time: "			<< (postBlur / 1000.0f) << "ms" << std::endl;
+	std::cout << "Directional time: "	<< (postDir / 1000.0f) << "ms" << std::endl;
+	std::cout << "Indirect time: "		<< (postInd / 1000.0f) << "ms" << std::endl;
+	std::cout << "Ind Blur time: "		<< (postIBlur / 1000.0f) << "ms" << std::endl;
+	std::cout << "Accumulate time: "	<< (postAcc / 1000.0f) << "ms" << std::endl;
+	std::cout << "Skybox time: "		<< (end / 1000.0f) << "ms" << std::endl;
+	std::cout << "Total time: " << (end + postGeom + postSSDO + postBlur + postDir + postInd + postIBlur + postAcc) / 1000.0f << "ms" << std::endl;
 }
 
 void Renderer::GeomPass() {
@@ -419,8 +439,8 @@ void Renderer::SSDOIndirectPass() {
 	glBindTexture(GL_TEXTURE_2D, ssdoColorBufferLighting);
 	for (GLuint i = 0; i < KERNEL_SIZE; ++i)
 		glUniform3fv(glGetUniformLocation(indirectShader->GetProgram(), ("samples[" + std::to_string(i) + "]").c_str()), 1, &ssdoKernel[i].x);
-	glUniform1i(glGetUniformLocation(ssdoShader->GetProgram(), "kernelSize"), KERNEL_SIZE);
-	glUniform2fv(glGetUniformLocation(ssdoShader->GetProgram(), "windowSize"), 1, &windowSize.x);
+	glUniform1i(glGetUniformLocation(indirectShader->GetProgram(), "kernelSize"), KERNEL_SIZE);
+	glUniform2fv(glGetUniformLocation(indirectShader->GetProgram(), "windowSize"), 1, &windowSize.x);
 	UpdateShaderMatrices();
 	quad->Draw();
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
